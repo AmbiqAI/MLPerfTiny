@@ -4,33 +4,59 @@ include make/neuralspot_toolchain.mk
 include make/jlink.mk
 include autogen.mk
 
-local_app_name := main
+BENCHMARK:=keyword_spotting
+local_app_name := $(BENCHMARK)
 sources := $(wildcard src/*.c)
 sources += $(wildcard src/*.cc)
 sources += $(wildcard src/*.cpp)
 sources += $(wildcard src/*.s)
 
 # MLPerf Specific Things
-BENCHMARK:=keyword_spotting
 sources += $(wildcard src/am_utils/*.c)
 sources += $(wildcard src/api/*.cc)
 sources += $(wildcard src/benchmarks/$(BENCHMARK)/*.cc)
 sources += $(wildcard src/benchmarks/$(BENCHMARK)/api/*.cc)
 sources += $(wildcard src/benchmarks/$(BENCHMARK)/model/*.cc)
 sources += $(wildcard src/benchmarks/$(BENCHMARK)/ic/*.cc)
+ifeq ($(BENCHMARK),person_detection)
+sources += $(wildcard src/training/visual_wake_words/trained_models/vww/*.cc)
+endif
 
 $(info $(sources))
+VPATH+=$(dir $(sources))
+# LOCAL_INCLUDES+=$(dir $(sources))
+$(info $(VPATH))
 
 targets  := $(BINDIR)/$(local_app_name).axf
 targets  += $(BINDIR)/$(local_app_name).bin
 mains    += $(BINDIR)/$(local_app_name).o
 
-objects      = $(filter-out $(mains),$(call source-to-object,$(sources)))
+#objects      = $(filter-out $(mains),$(call source-to-object2,$(sources)))
+objs      = $(call source-to-object2,$(sources))
+objects   = $(objs:%=$(BINDIR)/%)
 dependencies = $(subst .o,.d,$(objects))
 $(info $(objects))
 
+# MLPerf Model Specific Stuff
+# Benchmark includes
+LOCAL_INCLUDES=  src
+LOCAL_INCLUDES+= src/util
+LOCAL_INCLUDES+= src/am_utils
+LOCAL_INCLUDES+= src/api
+LOCAL_INCLUDES+= src/benchmarks/$(BENCHMARK)/api
+LOCAL_INCLUDES+= src/benchmarks/$(BENCHMARK)/model
+ifeq ($(BENCHMARK),image_classification)
+LOCAL_INCLUDES+= src/benchmarks/$(BENCHMARK)/ic
+endif
+# Person-detect includes, paths, and sources
+ifeq ($(BENCHMARK),person_detection)
+LOCAL_INCLUDES+= src/training/visual_wake_words/trained_models
+LOCAL_INCLUDES+= src/training/visual_wake_words/trained_models/vww
+endif
+
 CFLAGS     += $(addprefix -D,$(DEFINES))
 CFLAGS     += $(addprefix -I includes/,$(INCLUDES))
+CFLAGS     += $(addprefix -I , $(LOCAL_INCLUDES))
 LINKER_FILE := libs/linker_script.ld
 
 all: $(BINDIR) $(objects) $(targets)
@@ -52,32 +78,35 @@ endif
 $(BINDIR):
 	@mkdir -p $@
 
-%.o: ../src/%.cc
-	@echo " Compiling $(COMPILERNAME) $< to make $@"
+$(BINDIR)/%.o: %.cc
+	@echo " ********CC Compiling $(COMPILERNAME) $< to make $@"
 	@mkdir -p $(@D)
 	$(Q) $(CC) -c $(CFLAGS) $(CCFLAGS) $< -o $@
 
-%.o: ../src/%.cpp
-	@echo " Compiling $(COMPILERNAME) $< to make $@"
+$(BINDIR)/%.o: %.cpp $(BINDIR)/%.d
+	@echo " ********CPP Compiling $(COMPILERNAME) $< to make $@"
 	@mkdir -p $(@D)
 	$(Q) $(CC) -c $(CFLAGS) $(CCFLAGS) $< -o $@
 
-%.o: ../%.c
-	@echo " Compiling $(COMPILERNAME) $< to make $@"
+$(BINDIR)/%.o: %.c
+	@echo " ********C Compiling $(COMPILERNAME) $< to make $@"
 	@mkdir -p $(@D)
 	$(Q) $(CC) -c $(CFLAGS) $(CONLY_FLAGS) $< -o $@
 
-%.o: ../src/%.s
+$(BINDIR)/%.o: %.s $(BINDIR)/%.d
 	@echo " Assembling $(COMPILERNAME) $<"
 	@mkdir -p $(@D)
 	$(Q) $(CC) -c $(CFLAGS) $< -o $@
 
-%.axf: %.o
+# $(BINDIR)/*.d: ;
+
+$(BINDIR)/$(local_app_name).axf: $(objects)
 	@echo " Linking $(COMPILERNAME) $@"
 	@mkdir -p $(@D)
-	$(Q) $(CC) -Wl,-T,$(LINKER_FILE) -o $@ $< $(objects) $(LFLAGS)
+# $(Q) $(CC) -Wl,-T,$(LINKER_FILE) -o $@ $< $(objects) $(LFLAGS)
+	$(Q) $(CC) -Wl,-T,$(LINKER_FILE) -o $@ $(objects) $(LFLAGS)
 
-%.bin: %.axf 
+$(BINDIR)/$(local_app_name).bin: $(BINDIR)/$(local_app_name).axf 
 	@echo " Copying $(COMPILERNAME) $@..."
 	@mkdir -p $(@D)
 	$(Q) $(CP) $(CPFLAGS) $< $@
@@ -100,5 +129,7 @@ deploy: $(JLINK_CF)
 view:
 	@echo " Printing SWO output (ensure JLink USB connected and powered on)..."
 	$(Q) $(JLINK_SWO) $(JLINK_SWO_CMD)
+
+#-include $(dependencies)
 
 %.d: ;

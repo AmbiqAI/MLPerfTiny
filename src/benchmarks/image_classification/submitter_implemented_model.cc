@@ -34,6 +34,7 @@ in th_results is copied from the original in EEMBC.
 #include "ic_inputs.h"
 #include "ic_model_quant_data.h"
 #include "ic_model_settings.h"
+#include "ns_peripherals_power.h"
 
 constexpr int kTensorArenaSize = 100 * 1024;
 uint8_t tensor_arena[kTensorArenaSize];
@@ -106,12 +107,12 @@ void th_final_initialize(void) {
 
   // After initializing the model, set perf or power mode
   #if EE_CFG_ENERGY_MODE==1
-    am_ai_set_power_mode(&am_ai_mlperf_recommended_default);
+    ns_power_config(&ns_mlperf_recommended_default);
   #else
     #ifdef AM_MLPERF_PERFORMANCE_MODE
-      am_ai_set_power_mode(&am_ai_development_default);
+      ns_power_config(&ns_development_default);
     #else
-      am_ai_set_power_mode(&am_ai_mlperf_ulp_default);
+      ns_power_config(&ns_mlperf_ulp_default);
     #endif // AM_MLPERF_PERFORMANCE_MODE  
   #endif
 }
