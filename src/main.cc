@@ -14,16 +14,18 @@ limitations under the License.
 
 /// NeuralSPOT Includes
 #include "ns_ambiqsuite_harness.h"
-#include "ns_audio.h"
-#include "ns_peripherals_button.h"
 #include "ns_peripherals_power.h"
 
 #include "internally_implemented.h"
 #include "submitter_implemented.h"
+// #include "am_bsp_pp.h"
 
 
 int main(int argc, char *argv[]) {
+    // am_bsp_pp_snapshot(true, 3000, true);
+
   ee_benchmark_initialize();
+  // am_bsp_pp_snapshot(true, 3001, true);
   while (1) {
     int c;
     c = th_getchar();

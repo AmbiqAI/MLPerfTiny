@@ -27,7 +27,7 @@ ERPC_VERSION := R1.9.1
 TARGET      := main# default target for binary-specific operations such as 'deploy' 
 
 ##### TinyUSB Default Config #####
-DEFINES+= CFG_TUSB_MCU=OPT_MCU_APOLLO4
+# DEFINES+= CFG_TUSB_MCU=OPT_MCU_APOLLO4
 # DEFINES+= CFG_TUSB_DEBUG=2
 
 ##### Common AI Precompiler Directives #####

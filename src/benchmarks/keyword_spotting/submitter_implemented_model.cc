@@ -19,7 +19,6 @@ in th_results is copied from the original in EEMBC.
 #include "am_mcu_apollo.h"
 #include "am_bsp.h"
 #include "am_util.h"
-//#include "am_memory_map.h"
 #include "uart.h"
 #include "timer.h"
 #include "ns_peripherals_power.h"
@@ -43,23 +42,12 @@ in th_results is copied from the original in EEMBC.
 #include "kws_model_data.h"
 #include "kws_model_settings.h"
 
-//#define AM_MLPERF_PERFORMANCE_MODE
-//#define USE_TCM
-
 // Globals for model execution and instantiation
 // Good targets for optimization - move to lowest power or fastest mem
 // Maybe instantiate twice - once for perf and once for power
 
 constexpr int kTensorArenaSize = 200 * 1024;
-#ifdef USE_TCM
-uint8_t* tensor_arena = (uint8_t*)(AM_MEM_MCU_TCM+0x28000);
-#else
 alignas(16) uint8_t tensor_arena[kTensorArenaSize];
-#endif
-
-// Experiment - move model to TCM
-//unsigned char* g_kws_model_data_tcm = (unsigned char*)(AM_MEM_MCU_TCM+0x28000);
-
 
 // Model pointers
 tflite::ErrorReporter* error_reporter = nullptr;
@@ -111,9 +99,20 @@ void th_final_initialize(void) {
 
   model_input = interpreter->input(0);
 
+const ns_power_config_t ns_mlperf_debug = {
+    .eAIPowerMode = NS_MAXIMUM_PERF,
+    .bNeedAudAdc = false,
+    .bNeedSharedSRAM = false,
+    .bNeedCrypto = false,
+    .bNeedBluetooth = false,
+    .bNeedUSB = false,
+    .bNeedIOM = false,
+    .bNeedAlternativeUART = true
+};
+
   // After initializing the model, set perf or power mode
   #if EE_CFG_ENERGY_MODE==1
-    ns_power_config(&ns_mlperf_recommended_default);
+    ns_power_config(&ns_mlperf_debug);
   #else
     #ifdef AM_MLPERF_PERFORMANCE_MODE
       ns_power_config(&ns_development_default);

@@ -37,21 +37,21 @@ CFLAGS+= -ffunction-sections -fdata-sections -fomit-frame-pointer -fno-exception
 CCFLAGS+= -fno-use-cxa-atexit
 CFLAGS+= -MMD -MP -Wall
 CONLY_FLAGS+= -std=c99 
-CFLAGS+= -O3
+CFLAGS+= -g -O3
 #CFLAGS+= -g -O0
 CFLAGS+= 
 
 LFLAGS = -mthumb -mcpu=$(CPU) -mfpu=$(FPU) -mfloat-abi=$(FABI)
-LFLAGS+= -nostartfiles -static -fno-exceptions
+LFLAGS+= -nostartfiles -static -lstdc++ -fno-exceptions
 LFLAGS+= -Wl,--gc-sections,--entry,Reset_Handler,-Map,$(BINDIR)/output.map
-LFLAGS+= -Wl,--start-group -lm -lc -lgcc -lnosys $(libraries) $(lib_prebuilt) -lstdc++ -Wl,--end-group
+LFLAGS+= -Wl,--start-group -lm -lc -lgcc -lnosys $(libraries) $(lib_prebuilt) -Wl,--end-group
 LFLAGS+=
 
 CPFLAGS = -Obinary
 ODFLAGS = -S
 
 $(info Building for $(PART)_$(EVB))
-DEFINES+= $(PART)_$(EVB)
+# DEFINES+= $(PART)_$(EVB)
 DEFINES+= PART_$(PART)
 ifeq ($(PART),apollo4b)
 DEFINES+= AM_PART_APOLLO4B
@@ -60,16 +60,10 @@ ifeq ($(PART),apollo4p)
 DEFINES+= AM_PART_APOLLO4P
 endif
 DEFINES+= AM_PACKAGE_BGA
+DEFINES+= __FPU_PRESENT
 DEFINES+= gcc
 DEFINES+= TF_LITE_STATIC_MEMORY
 # Enable ML Debug and Symbols with 'make MLDEBUG=1'
 ifneq ($(MLDEBUG),1)
 DEFINES+= TF_LITE_STRIP_ERROR_STRINGS
-endif
-ifeq ($(AUDIO_DEBUG),1)
-DEFINES+= AUDIODEBUG
-DEFINES+= 'SEGGER_RTT_SECTION="SHARED_RW"'
-endif
-ifeq ($(ENERGY_MODE),1)
-DEFINES+= ENERGYMODE
 endif

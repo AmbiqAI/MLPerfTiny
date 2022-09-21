@@ -64,6 +64,7 @@ LOCAL_INCLUDES+= src/training/visual_wake_words/trained_models
 LOCAL_INCLUDES+= src/training/visual_wake_words/trained_models/vww
 endif
 
+$(info $(DEFINES))
 CFLAGS     += $(addprefix -D,$(DEFINES))
 CFLAGS     += $(addprefix -I includes/,$(INCLUDES))
 CFLAGS     += $(addprefix -I , $(LOCAL_INCLUDES))
