@@ -5,6 +5,16 @@ include make/jlink.mk
 include autogen.mk
 
 BENCHMARK:=keyword_spotting
+MLPERF:=1
+MLDEBUG:=0
+ENERGY_MODE:=0
+
+ifeq ($(MLPERF),1)
+DEFINES+= AM_MLPERF_PERFORMANCE_MODE
+endif
+DEFINES+= EE_CFG_ENERGY_MODE=$(ENERGY_MODE)
+# $(info $(DEFINES))
+
 local_app_name := $(BENCHMARK)
 sources := $(wildcard src/*.c)
 sources += $(wildcard src/*.cc)
@@ -22,10 +32,10 @@ ifeq ($(BENCHMARK),person_detection)
 sources += $(wildcard src/training/visual_wake_words/trained_models/vww/*.cc)
 endif
 
-$(info $(sources))
+# $(info $(sources))
 VPATH+=$(dir $(sources))
 # LOCAL_INCLUDES+=$(dir $(sources))
-$(info $(VPATH))
+# $(info $(VPATH))
 
 targets  := $(BINDIR)/$(local_app_name).axf
 targets  += $(BINDIR)/$(local_app_name).bin
@@ -35,7 +45,7 @@ mains    += $(BINDIR)/$(local_app_name).o
 objs      = $(call source-to-object2,$(sources))
 objects   = $(objs:%=$(BINDIR)/%)
 dependencies = $(subst .o,.d,$(objects))
-$(info $(objects))
+# $(info $(objects))
 
 # MLPerf Model Specific Stuff
 # Benchmark includes
