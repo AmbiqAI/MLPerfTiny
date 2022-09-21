@@ -8,7 +8,7 @@ source-to-object2 = $(notdir $(subst .c,.o,$(filter %.c,$1))) \
                     $(notdir $(subst .s,.o,$(filter %.s,$1))) \
                     $(notdir $(subst .cc,.o,$(filter %.cc,$1))) \
                     $(notdir $(subst .cpp,.o,$(filter %.cpp,$1)))
-
+					
 src-to-build = $(subst src,$(BINDIR),$1)
 
 # $(subdirectory)
