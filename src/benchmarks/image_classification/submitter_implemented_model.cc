@@ -36,7 +36,7 @@ in th_results is copied from the original in EEMBC.
 #include "ic_model_settings.h"
 #include "ns_peripherals_power.h"
 
-constexpr int kTensorArenaSize = 100 * 1024;
+constexpr int kTensorArenaSize = 55 * 1024;
 uint8_t tensor_arena[kTensorArenaSize];
 
 tflite::MicroModelRunner<int8_t, int8_t, 7> *runner;
@@ -104,6 +104,7 @@ void th_final_initialize(void) {
   static tflite::MicroModelRunner<int8_t, int8_t, 7> model_runner(
       pretrainedResnet_quant_tflite, resolver, tensor_arena, kTensorArenaSize);
   runner = &model_runner;
+  th_printf("arena size %d\r\n", runner->arena_used_bytes());
 
   // After initializing the model, set perf or power mode
   #if EE_CFG_ENERGY_MODE==1
@@ -115,6 +116,18 @@ void th_final_initialize(void) {
       ns_power_config(&ns_mlperf_ulp_default);
     #endif // AM_MLPERF_PERFORMANCE_MODE  
   #endif
+
+    am_hal_pwrctrl_mcu_memory_config_t McuMemCfg =
+    {
+      .eCacheCfg    = AM_HAL_PWRCTRL_CACHE_ALL,
+      .bRetainCache = false,
+      .eDTCMCfg     = AM_HAL_PWRCTRL_DTCM_128K,
+      .eRetainDTCM  = AM_HAL_PWRCTRL_DTCM_128K,
+      .bEnableNVM0  = true,
+      .bRetainNVM0  = true
+    };
+
+  am_hal_pwrctrl_mcu_memory_config(&McuMemCfg);
 }
 void th_pre() {}
 void th_post() {}

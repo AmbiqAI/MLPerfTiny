@@ -76,6 +76,8 @@ class MicroModelRunner {
 
   int input_zero_point() { return interpreter_.input(0)->params.zero_point; }
 
+  int arena_used_bytes() { return interpreter_.arena_used_bytes(); }
+
  private:
   const tflite::Model* model_;
   tflite::MicroErrorReporter micro_reporter_;

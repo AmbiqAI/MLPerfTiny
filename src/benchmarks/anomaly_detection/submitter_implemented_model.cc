@@ -197,8 +197,25 @@ void th_final_initialize(void) {
     #endif // AM_MLP
   #endif
 
+
+  // am_hal_pwrctrl_mcu_memory_config_t McuMemCfg =
+  //   {
+  //     .eCacheCfg    = AM_HAL_PWRCTRL_CACHE_ALL,
+  //     .bRetainCache = false,
+  //     .eDTCMCfg     = AM_HAL_PWRCTRL_DTCM_128K,
+  //     .eRetainDTCM  = AM_HAL_PWRCTRL_DTCM_128K,
+  //     .bEnableNVM0  = true,
+  //     .bRetainNVM0  = true
+  //   };
+
+  // am_hal_pwrctrl_mcu_memory_config(&McuMemCfg);
   th_printf("Initialized\r\n");
 }
 
-void th_pre() {}
-void th_post() {}
+void th_pre() {
+  // am_hal_pwrctrl_mcu_mode_select(AM_HAL_PWRCTRL_MCU_MODE_HIGH_PERFORMANCE);
+}
+void th_post() {
+  // am_hal_pwrctrl_mcu_mode_select(AM_HAL_PWRCTRL_MCU_MODE_LOW_POWER);
+
+}
