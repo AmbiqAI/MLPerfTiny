@@ -79,6 +79,7 @@ typedef struct
     bool               bNeedUSB;            ///< Prevents USB from being powered off
     bool               bNeedIOM;            ///< Prevents IOMx from being powered off
     bool               bNeedAlternativeUART; ///< for EEMBC Power Control Module and similar
+    bool               b128kTCM;            ///< Only need 128k TCM
 } ns_power_config_t;
 
 extern const ns_power_config_t ns_development_default; ///< Enables most things

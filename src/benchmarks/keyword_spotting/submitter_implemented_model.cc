@@ -90,7 +90,7 @@ void th_final_initialize(void) {
   static tflite::MicroInterpreter static_interpreter(
       model, resolver, tensor_arena, kTensorArenaSize, error_reporter);
   interpreter = &static_interpreter;
-  th_printf("arena size %d\r\n", interpreter->arena_used_bytes());
+  // th_printf("arena size %d\r\n", interpreter->arena_used_bytes());
 
   // Allocate memory for all model tensors
   TfLiteStatus allocate_status = interpreter->AllocateTensors();
@@ -98,76 +98,20 @@ void th_final_initialize(void) {
     TF_LITE_REPORT_ERROR(error_reporter, "AllocateTensors() failed");
     return;
   }
-  th_printf("arena size %d\r\n", interpreter->arena_used_bytes());
+  // th_printf("arena size %d\r\n", interpreter->arena_used_bytes());
 
   model_input = interpreter->input(0);
-//   am_bsp_low_power_init();
-
-// #if EE_CFG_ENERGY_MODE==1
-//   // Disable all peripherals except what is needd by MLPERF
-//   am_power_down_stuff();
-
-//   am_hal_pwrctrl_sram_memcfg_t SRAMMemCfg =
-//   {
-//     .eSRAMCfg         = AM_HAL_PWRCTRL_SRAM_NONE,
-//     .eActiveWithMCU   = AM_HAL_PWRCTRL_SRAM_NONE,
-//     .eActiveWithDSP   = AM_HAL_PWRCTRL_SRAM_NONE,
-//     .eSRAMRetain      = AM_HAL_PWRCTRL_SRAM_NONE
-//   };
-//   am_hal_pwrctrl_sram_config(&SRAMMemCfg);
-//   am_hal_cachectrl_config(&am_hal_cachectrl_defaults);
-//   am_hal_cachectrl_enable();
-
-//   //
-//   // Configure the board for low power operation.
-//   //
-//   am_hal_pwrctrl_mcu_mode_select(AM_HAL_PWRCTRL_MCU_MODE_HIGH_PERFORMANCE);
-// #endif
-
-const ns_power_config_t ns_mlperf_debug = {
-    .eAIPowerMode = NS_MAXIMUM_PERF,
-    .bNeedAudAdc = false,
-    .bNeedSharedSRAM = false,
-    .bNeedCrypto = false,
-    .bNeedBluetooth = false,
-    .bNeedUSB = false,
-    .bNeedIOM = false,
-    .bNeedAlternativeUART = true
-};
 
   // After initializing the model, set perf or power mode
   #if EE_CFG_ENERGY_MODE==1
-    ns_power_config(&ns_mlperf_debug);
+    ns_power_config(&ns_mlperf_mode3);
   #else
     #ifdef AM_MLPERF_PERFORMANCE_MODE
       ns_power_config(&ns_development_default);
     #else
-      ns_power_config(&ns_mlperf_ulp_default);
+      ns_power_config(&ns_mlperf_mode2);
     #endif // AM_MLPERF_PERFORMANCE_MODE  
   #endif
-
-  am_hal_pwrctrl_mcu_memory_config_t McuMemCfg =
-    {
-      .eCacheCfg    = AM_HAL_PWRCTRL_CACHE_ALL,
-      .bRetainCache = false,
-      .eDTCMCfg     = AM_HAL_PWRCTRL_DTCM_128K,
-      .eRetainDTCM  = AM_HAL_PWRCTRL_DTCM_128K,
-      .bEnableNVM0  = true,
-      .bRetainNVM0  = true
-    };
-
-  am_hal_pwrctrl_mcu_memory_config(&McuMemCfg);
-
-  // After initializing the model, set perf or power mode
-  // #if EE_CFG_ENERGY_MODE==1
-  //   am_ai_set_power_mode(&am_ai_mlperf_recommended_default);
-  // #else
-  //   #ifdef AM_MLPERF_PERFORMANCE_MODE
-  //     am_ai_set_power_mode(&am_ai_development_default);
-  //   #else
-  //     am_ai_set_power_mode(&am_ai_mlperf_ulp_default);
-  //   #endif // AM_MLPERF_PERFORMANCE_MODE  
-  // #endif
 
 }
 

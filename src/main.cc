@@ -22,10 +22,8 @@ limitations under the License.
 
 
 int main(int argc, char *argv[]) {
-    // am_bsp_pp_snapshot(true, 3000, true);
 
   ee_benchmark_initialize();
-  // am_bsp_pp_snapshot(true, 3001, true);
   while (1) {
     int c;
     c = th_getchar();

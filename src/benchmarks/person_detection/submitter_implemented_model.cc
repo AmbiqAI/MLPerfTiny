@@ -99,32 +99,20 @@ void th_final_initialize(void) {
   static tflite::MicroModelRunner<int8_t, int8_t, 6> model_runner(
       g_person_detect_model_data, resolver, tensor_arena, kTensorArenaSize);
   runner = &model_runner;
-  th_printf("arena size %d\r\n", runner->arena_used_bytes());
 
   // After initializing the model, set perf or power mode
   #if EE_CFG_ENERGY_MODE==1
     //ns_power_config(&ns_mlperf_recommended_default);
-    ns_power_config(&ns_mlperf_ulp_default);
+    ns_power_config(&ns_mlperf_mode1);
 
   #else
     #ifdef AM_MLPERF_PERFORMANCE_MODE
       ns_power_config(&ns_development_default);
     #else
-      ns_power_config(&ns_mlperf_ulp_default);
-    #endif // AM_MLP
+      ns_power_config(&ns_mlperf_mode2);
+    #endif
   #endif
 
-  //   am_hal_pwrctrl_mcu_memory_config_t McuMemCfg =
-  //   {
-  //     .eCacheCfg    = AM_HAL_PWRCTRL_CACHE_ALL,
-  //     .bRetainCache = false,
-  //     .eDTCMCfg     = AM_HAL_PWRCTRL_DTCM_128K,
-  //     .eRetainDTCM  = AM_HAL_PWRCTRL_DTCM_128K,
-  //     .bEnableNVM0  = true,
-  //     .bRetainNVM0  = true
-  //   };
-
-  // am_hal_pwrctrl_mcu_memory_config(&McuMemCfg);
 }
 
 void th_pre() {}

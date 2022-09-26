@@ -188,34 +188,19 @@ void th_final_initialize(void) {
   
   // After initializing the model, set perf or power mode
   #if EE_CFG_ENERGY_MODE==1
-    ns_power_config(&ns_mlperf_recommended_default);
+    ns_power_config(&ns_mlperf_mode1);
   #else
     #ifdef AM_MLPERF_PERFORMANCE_MODE
       ns_power_config(&ns_development_default);
     #else
-      ns_power_config(&ns_mlperf_ulp_default);
+      ns_power_config(&ns_mlperf_mode2);
     #endif // AM_MLP
   #endif
 
-
-  // am_hal_pwrctrl_mcu_memory_config_t McuMemCfg =
-  //   {
-  //     .eCacheCfg    = AM_HAL_PWRCTRL_CACHE_ALL,
-  //     .bRetainCache = false,
-  //     .eDTCMCfg     = AM_HAL_PWRCTRL_DTCM_128K,
-  //     .eRetainDTCM  = AM_HAL_PWRCTRL_DTCM_128K,
-  //     .bEnableNVM0  = true,
-  //     .bRetainNVM0  = true
-  //   };
-
-  // am_hal_pwrctrl_mcu_memory_config(&McuMemCfg);
   th_printf("Initialized\r\n");
 }
 
 void th_pre() {
-  // am_hal_pwrctrl_mcu_mode_select(AM_HAL_PWRCTRL_MCU_MODE_HIGH_PERFORMANCE);
 }
 void th_post() {
-  // am_hal_pwrctrl_mcu_mode_select(AM_HAL_PWRCTRL_MCU_MODE_LOW_POWER);
-
 }
