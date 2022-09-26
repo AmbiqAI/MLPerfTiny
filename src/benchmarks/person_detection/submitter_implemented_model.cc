@@ -103,7 +103,9 @@ void th_final_initialize(void) {
 
   // After initializing the model, set perf or power mode
   #if EE_CFG_ENERGY_MODE==1
-    ns_power_config(&ns_mlperf_recommended_default);
+    //ns_power_config(&ns_mlperf_recommended_default);
+    ns_power_config(&ns_mlperf_ulp_default);
+
   #else
     #ifdef AM_MLPERF_PERFORMANCE_MODE
       ns_power_config(&ns_development_default);

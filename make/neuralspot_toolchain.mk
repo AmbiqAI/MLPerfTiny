@@ -20,17 +20,6 @@ SIZE = $(TOOLCHAIN)-size
 RM = $(shell which rm 2>/dev/null)
 DOX = doxygen
 
-# EXECUTABLES = CC LD CP OD AR RD SIZE GCC JLINK JLINK_SWO
-# K := $(foreach exec,$(EXECUTABLES),\
-#         $(if $(shell which $($(exec)) 2>/dev/null),,\
-#         $(info $(exec) not found on PATH ($($(exec))).)$(exec)))
-# $(if $(strip $(value K)),$(info Required Program(s) $(strip $(value K)) not found))
-
-# ifneq ($(strip $(value K)),)
-# all clean:
-# 	$(info Tools $(TOOLCHAIN)-$(COMPILERNAME) not installed.)
-# 	$(RM) -rf bin
-# else
 
 CFLAGS+= -mthumb -mcpu=$(CPU) -mfpu=$(FPU) -mfloat-abi=$(FABI)
 CFLAGS+= -ffunction-sections -fdata-sections -fomit-frame-pointer -fno-exceptions
@@ -42,18 +31,15 @@ CFLAGS+= -O3
 CFLAGS+= 
 
 LFLAGS = -mthumb -mcpu=$(CPU) -mfpu=$(FPU) -mfloat-abi=$(FABI)
-#LFLAGS+= -nostartfiles -static -fno-exceptions
 LFLAGS+= -nostartfiles -static -lstdc++ -fno-exceptions
 LFLAGS+= -Wl,--gc-sections,--entry,Reset_Handler,-Map,$(BINDIR)/output.map
 LFLAGS+= -Wl,--start-group -lm -lc -lgcc -lnosys $(libraries) $(lib_prebuilt) -Wl,--end-group
-#LFLAGS+= -Wl,--start-group -lm -lc -lgcc -lnosys $(libraries) $(lib_prebuilt) -lstdc++ -Wl,--end-group
 LFLAGS+=
 
 CPFLAGS = -Obinary
 ODFLAGS = -S
 
 $(info Building for $(PART)_$(EVB))
-# DEFINES+= $(PART)_$(EVB)
 DEFINES+= PART_$(PART)
 ifeq ($(PART),apollo4b)
 DEFINES+= AM_PART_APOLLO4B

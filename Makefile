@@ -2,7 +2,6 @@ include make/helpers.mk
 include make/neuralspot_config.mk
 include make/neuralspot_toolchain.mk
 include make/jlink.mk
-include autogen.mk
 
 BENCHMARK:=keyword_spotting
 MLPERF:=1
@@ -13,7 +12,6 @@ ifeq ($(MLPERF),1)
 DEFINES+= AM_MLPERF_PERFORMANCE_MODE
 endif
 DEFINES+= EE_CFG_ENERGY_MODE=$(ENERGY_MODE)
-# $(info $(DEFINES))
 
 local_app_name := $(BENCHMARK)
 sources := $(wildcard src/*.c)
@@ -32,20 +30,23 @@ ifeq ($(BENCHMARK),person_detection)
 sources += $(wildcard src/training/visual_wake_words/trained_models/vww/*.cc)
 endif
 
-# $(info $(sources))
 VPATH+=$(dir $(sources))
-# LOCAL_INCLUDES+=$(dir $(sources))
-# $(info $(VPATH))
 
 targets  := $(BINDIR)/$(local_app_name).axf
 targets  += $(BINDIR)/$(local_app_name).bin
 mains    += $(BINDIR)/$(local_app_name).o
 
-#objects      = $(filter-out $(mains),$(call source-to-object2,$(sources)))
 objs      = $(call source-to-object2,$(sources))
 objects   = $(objs:%=$(BINDIR)/%)
 dependencies = $(subst .o,.d,$(objects))
-# $(info $(objects))
+
+#if TF_VERSION=b04cd98
+	INCLUDES += extern/AmbiqSuite/R4.1.0/boards/apollo4p_blue_evb/bsp extern/AmbiqSuite/R4.1.0/CMSIS/ARM/Include extern/AmbiqSuite/R4.1.0/CMSIS/AmbiqMicro/Include extern/AmbiqSuite/R4.1.0/devices extern/AmbiqSuite/R4.1.0/mcu/apollo4p extern/AmbiqSuite/R4.1.0/mcu/apollo4p/hal/mcu extern/AmbiqSuite/R4.1.0/utils  extern/tensorflow/b04cd98/. extern/tensorflow/b04cd98/third_party extern/tensorflow/b04cd98/tensorflow/lite/micro/tools/make/downloads/flatbuffers/include neuralspot/ns-harness/includes-api neuralspot/ns-peripherals/includes-api
+	libraries += libs/ambiqsuite.a libs/ns-peripherals.a libs/libam_hal.a libs/libam_bsp.a libs/libtensorflow-microlite-optimizednew.a
+#else
+	INCLUDES += extern/AmbiqSuite/R4.1.0/boards/apollo4p_blue_evb/bsp extern/AmbiqSuite/R4.1.0/CMSIS/ARM/Include extern/AmbiqSuite/R4.1.0/CMSIS/AmbiqMicro/Include extern/AmbiqSuite/R4.1.0/devices extern/AmbiqSuite/R4.1.0/mcu/apollo4p extern/AmbiqSuite/R4.1.0/mcu/apollo4p/hal/mcu extern/AmbiqSuite/R4.1.0/utils  extern/tensorflow/R2.3.1/tensorflow extern/tensorflow/R2.3.1/third_party extern/tensorflow/R2.3.1/third_party/flatbuffers/include neuralspot/ns-harness/includes-api neuralspot/ns-peripherals/includes-api
+	libraries += libs/ambiqsuite.a libs/ns-peripherals.a libs/libam_hal.a libs/libam_bsp.a libs/libtensorflow-microlite-oldopt.a
+#endif
 
 # MLPerf Model Specific Stuff
 # Benchmark includes
@@ -64,7 +65,6 @@ LOCAL_INCLUDES+= src/training/visual_wake_words/trained_models
 LOCAL_INCLUDES+= src/training/visual_wake_words/trained_models/vww
 endif
 
-$(info $(DEFINES))
 CFLAGS     += $(addprefix -D,$(DEFINES))
 CFLAGS     += $(addprefix -I includes/,$(INCLUDES))
 CFLAGS     += $(addprefix -I , $(LOCAL_INCLUDES))
@@ -109,12 +109,10 @@ $(BINDIR)/%.o: %.s $(BINDIR)/%.d
 	@mkdir -p $(@D)
 	$(Q) $(CC) -c $(CFLAGS) $< -o $@
 
-# $(BINDIR)/*.d: ;
 
 $(BINDIR)/$(local_app_name).axf: $(objects)
 	@echo " Linking $(COMPILERNAME) $@"
 	@mkdir -p $(@D)
-# $(Q) $(CC) -Wl,-T,$(LINKER_FILE) -o $@ $< $(objects) $(LFLAGS)
 	$(Q) $(CC) -Wl,-T,$(LINKER_FILE) -o $@ $(objects) $(LFLAGS)
 
 $(BINDIR)/$(local_app_name).bin: $(BINDIR)/$(local_app_name).axf 
@@ -140,7 +138,5 @@ deploy: $(JLINK_CF)
 view:
 	@echo " Printing SWO output (ensure JLink USB connected and powered on)..."
 	$(Q) $(JLINK_SWO) $(JLINK_SWO_CMD)
-
-#-include $(dependencies)
 
 %.d: ;
