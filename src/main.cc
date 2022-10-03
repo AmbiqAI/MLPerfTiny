@@ -18,8 +18,6 @@ limitations under the License.
 
 #include "internally_implemented.h"
 #include "submitter_implemented.h"
-// #include "am_bsp_pp.h"
-
 
 int main(int argc, char *argv[]) {
 

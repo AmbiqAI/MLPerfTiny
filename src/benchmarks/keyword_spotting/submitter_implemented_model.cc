@@ -22,7 +22,6 @@ in th_results is copied from the original in EEMBC.
 #include "uart.h"
 #include "timer.h"
 #include "ns_peripherals_power.h"
-// #include "power.h"
 
 #include "submitter_implemented.h"
 
@@ -47,7 +46,8 @@ in th_results is copied from the original in EEMBC.
 // Good targets for optimization - move to lowest power or fastest mem
 // Maybe instantiate twice - once for perf and once for power
 
-constexpr int kTensorArenaSize = 70 * 1024;
+constexpr int kTensorArenaSize = 24 * 1024;
+// constexpr int kTensorArenaSize = 70 * 1024;
 alignas(16) uint8_t tensor_arena[kTensorArenaSize];
 
 // Model pointers
@@ -90,7 +90,6 @@ void th_final_initialize(void) {
   static tflite::MicroInterpreter static_interpreter(
       model, resolver, tensor_arena, kTensorArenaSize, error_reporter);
   interpreter = &static_interpreter;
-  // th_printf("arena size %d\r\n", interpreter->arena_used_bytes());
 
   // Allocate memory for all model tensors
   TfLiteStatus allocate_status = interpreter->AllocateTensors();
