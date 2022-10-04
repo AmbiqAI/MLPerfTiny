@@ -14,7 +14,7 @@ FPU    = fpv4-sp-d16
 FABI     = hard
 
 ##### Extern Library Defaults #####
-AS_VERSION := R4.1.0
+AS_VERSION := R4.3.0
 TF_VERSION := b04cd98
 
 ##### Application Defaults #####
