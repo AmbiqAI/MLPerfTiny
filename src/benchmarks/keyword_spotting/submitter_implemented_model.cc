@@ -46,8 +46,9 @@ in th_results is copied from the original in EEMBC.
 // Good targets for optimization - move to lowest power or fastest mem
 // Maybe instantiate twice - once for perf and once for power
 
-constexpr int kTensorArenaSize = 24 * 1024;
-// constexpr int kTensorArenaSize = 70 * 1024;
+#define ARENA_SIZE 24
+constexpr int kTensorArenaSize = ARENA_SIZE * 1024;
+
 alignas(16) uint8_t tensor_arena[kTensorArenaSize];
 
 // Model pointers
@@ -55,6 +56,53 @@ tflite::ErrorReporter* error_reporter = nullptr;
 const tflite::Model* model = nullptr;
 tflite::MicroInterpreter* interpreter = nullptr;
 TfLiteTensor* model_input = nullptr;
+
+typedef struct {
+  uint32_t daccess;
+  uint32_t dtaglookup;
+  uint32_t dhitslookup;
+  uint32_t dhitsline;
+  uint32_t iaccess;
+  uint32_t itaglookup;
+  uint32_t ihitslookup;
+  uint32_t ihitsline;
+} ns_cache_dump_t;
+
+ns_cache_dump_t startDump;
+ns_cache_dump_t endDump;
+
+void captureCacheStats(ns_cache_dump_t *dump) {
+  dump->daccess     = CPU->DMON0;
+  dump->dtaglookup  = CPU->DMON1;
+  dump->dhitslookup = CPU->DMON2;
+  dump->dhitsline   = CPU->DMON3;
+  dump->iaccess     = CPU->IMON0;
+  dump->itaglookup  = CPU->IMON1;
+  dump->ihitslookup = CPU->IMON2;
+  dump->ihitsline   = CPU->IMON3;
+}
+
+void printCacheDump(ns_cache_dump_t *dump) {
+  th_printf("****** Dcache Accesses :         %d\r\n",dump->daccess    );
+  th_printf("****** Dcache Tag Lookups :      %d\r\n",dump->dtaglookup );
+  th_printf("****** Dcache hits for lookups : %d\r\n",dump->dhitslookup);
+  th_printf("****** Dcache hits for lines :   %d\r\n",dump->dhitsline  );
+  th_printf("****** Icache Accesses :         %d\r\n",dump->iaccess    );
+  th_printf("****** Icache Tag Lookups :      %d\r\n",dump->itaglookup );
+  th_printf("****** Icache hits for lookups : %d\r\n",dump->ihitslookup);
+  th_printf("****** Icache hits for lines :   %d\r\n",dump->ihitsline  );
+}
+
+void printCacheDumpDelta(ns_cache_dump_t *start, ns_cache_dump_t *end) {
+  th_printf("****** Delta Dcache Accesses :         %d\r\n",end->daccess     - start->daccess    );
+  th_printf("****** Delta Dcache Tag Lookups :      %d\r\n",end->dtaglookup  - start->dtaglookup );
+  th_printf("****** Delta Dcache hits for lookups : %d\r\n",end->dhitslookup - start->dhitslookup);
+  th_printf("****** Delta Dcache hits for lines :   %d\r\n",end->dhitsline   - start->dhitsline  );
+  th_printf("****** Delta Icache Accesses :         %d\r\n",end->iaccess     - start->iaccess    );
+  th_printf("****** Delta Icache Tag Lookups :      %d\r\n",end->itaglookup  - start->itaglookup );
+  th_printf("****** Delta Icache hits for lookups : %d\r\n",end->ihitslookup - start->ihitslookup);
+  th_printf("****** Delta Icache hits for lines :   %d\r\n",end->ihitsline   - start->ihitsline  );
+}
 
 /// \brief Instantiate the model
 void th_final_initialize(void) {
@@ -97,7 +145,9 @@ void th_final_initialize(void) {
     TF_LITE_REPORT_ERROR(error_reporter, "AllocateTensors() failed");
     return;
   }
-  // th_printf("arena size %d\r\n", interpreter->arena_used_bytes());
+  
+  if (interpreter->arena_used_bytes() > kTensorArenaSize)
+    th_printf("arena used size %d, but allocated %d\r\n", interpreter->arena_used_bytes(), kTensorArenaSize);
 
   model_input = interpreter->input(0);
 
@@ -111,7 +161,9 @@ void th_final_initialize(void) {
       ns_power_config(&ns_mlperf_mode2);
     #endif // AM_MLPERF_PERFORMANCE_MODE  
   #endif
-
+  
+  // char dummy = 0;
+  // am_hal_cachectrl_control(AM_HAL_CACHECTRL_CONTROL_MONITOR_ENABLE, (void*)&dummy);
 }
 
 // Prepare for inference and preprocess inputs.
@@ -166,5 +218,13 @@ void th_infer() {
   }
 }
 
-void th_pre() {}
-void th_post() {}
+void th_pre() {
+  // captureCacheStats(&startDump);
+  // printCacheDump(&startDump);
+}
+
+void th_post() {
+  // captureCacheStats(&endDump);
+  // printCacheDump(&endDump); 
+  // printCacheDumpDelta(&startDump, &endDump);
+}
